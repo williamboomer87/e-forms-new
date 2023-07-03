@@ -29,6 +29,7 @@ const ChatgbtP1 = ({ }) => {
     setInputValue(localStorage.getItem('inputValue'))
     const storedData = localStorage.getItem('questrionArr');
     const storedArray = JSON.parse(localStorage.getItem('answers'));
+    const userQA = JSON.parse(localStorage.getItem('userQA'));
 
     var qcount = localStorage.getItem('qcount');
     if (qcount) {
@@ -43,6 +44,13 @@ const ChatgbtP1 = ({ }) => {
         setAnswers(storedArray)
         if (parsedData.completion && parsedData.completion.length) {
           storedArray.map((item, index) => {
+            
+            // userQA.map((qaitem, qaindex) => {
+            //   if(index == qaindex){
+            //     handleAppendComponent('answer', storedArray[index])
+            //   }
+            // })
+
             handleAppendComponent('answer', storedArray[index])
             handleAppendComponent('question', parsedData.completion[index + 1])
           });
@@ -76,10 +84,13 @@ const ChatgbtP1 = ({ }) => {
 
       const qkeys = Object.keys(data.data);
 
+      localStorage.clear();
+
       localStorage.setItem('questrionArr', JSON.stringify(result));
       localStorage.setItem('qcount', 0);
       localStorage.setItem('answers', JSON.stringify([]));
       localStorage.setItem('qkeys', JSON.stringify(qkeys));
+      localStorage.setItem('userQA', JSON.stringify([]))
 
       var messages = {
         "messages": [
@@ -120,7 +131,6 @@ const ChatgbtP1 = ({ }) => {
     if (answers && answers.length) {
       localStorage.setItem('answers', JSON.stringify(answers));
       const storedArray2 = JSON.parse(localStorage.getItem('answers'));
-      // console.log(storedArray2)
 
       // Sending to second form
       var qamount = (result && result.length) ? result.length : 0;
@@ -206,6 +216,18 @@ const ChatgbtP1 = ({ }) => {
       
       if (response.ok) {
         handleAppendComponent('question', rdata.chat)
+
+        var qcount = localStorage.getItem('qcount');
+        var userQA = JSON.parse(localStorage.getItem('userQA'));
+
+        var newObj = {
+          "place": qcount,
+          "question": answer,
+          "answer": rdata.chat
+        };
+
+        userQA.push(newObj);
+        localStorage.setItem('userQA', JSON.stringify(userQA));
       }
     } else {
       setAnswers(prevAnswers => [...prevAnswers, answer]);
