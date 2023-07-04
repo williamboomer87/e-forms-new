@@ -13,20 +13,67 @@ import react from 'react';
 import { useRouter } from 'next/router';
 import { connect } from 'react-redux';
 import { setInputValue, fetchResult } from '../redux/store';
+// 
 
 
-const Home = () => {
+const Home = ({ inputValue, setInputValue, fetchResult, result, loading, error }) => {
+  const [inputQuestion, setInputQuestion] = useState('');
+
+  const [questionCount, setQuestionCount] = useState(0);
+
   const router = useRouter();
-  const [promptQuestion, setPromptQuestion] = useState('')
+  
+  useEffect(() => {
+    const { question } = router.query;
+    if (question) {
+      localStorage.setItem('inputValue', question);
+      setInputQuestion(question)
+      fetchResult(question).then(() => {
+        if (!error && !loading) {
+  
+        }
+      });
+    }
+  }, [router.query]);
 
-  const submitPrompt = () => {
-    const encodedQuestion = encodeURIComponent(promptQuestion);
-    window.location.href = `/chatgbt_p1?question=${encodedQuestion}`;
-  }
+  useEffect(() => {
+    
+  }, [questionCount])
 
-  const handlePromptChange = (event) => {
-    setPromptQuestion(event.target.value);
+
+  useEffect(() => {
+    if (result) {
+      localStorage.setItem('questrionArr', JSON.stringify(result));
+      localStorage.setItem('qcount', 0);
+      localStorage.setItem('answers', JSON.stringify([]));
+
+      router.push('/chatgbt_p1');
+    }
+  }, [result])
+
+
+
+  const handleQuestionChange = (event) => {
+    setInputQuestion(event.target.value);
+    setInputValue(event.target.value);
   };
+
+
+  const handleBeginClick = () => {
+    // console.log(inputQuestion);
+    console.log('Input value:', inputValue);
+
+    localStorage.setItem('inputValue', inputValue);
+
+    fetchResult(inputValue).then(() => {
+      if (!error && !loading) {
+
+        // router.push('/chatgbt_p1');
+      }
+    });
+  };
+
+
 
   return (
     <div className='background_grey'>
@@ -37,6 +84,9 @@ const Home = () => {
 
       <Header />
 
+
+      {loading && <div>Loading...</div>}
+      {error && <div>Error: {error}</div>} {/* Update error rendering */}
       <div className="container max814">
         <div className="row">
           <div className="col text-center">
@@ -44,12 +94,12 @@ const Home = () => {
             <div className='position-relative'>
               <input type="text" className="form-control lh-lg ps-5"
                 placeholder="Enter the name of a form (e.g., “Oregon Lease Agreement”)"
-                value={promptQuestion} onChange={handlePromptChange} />
+                value={inputQuestion} onChange={handleQuestionChange} />
               <FontAwesomeIcon icon={faSearch} className='position-absolute search_icon' />
             </div>
             <button type="button"
               className="btn btn-success my-5 home_btn"
-              onClick={submitPrompt}>
+              onClick={handleBeginClick}>
               <span>
                 <Image src="/images/icons/Comment.png" alt="My Image" width={16} height={10} className='me-2' />
                 Begin
@@ -74,10 +124,7 @@ const Home = () => {
                     </div>
                   </span>
                   <div className='float-end me-2 usediv rounded'>
-                    {/* <span className='me-2'>Use</span> */}
-                    <span class="me-2 use_question">
-                      <a href="/chatgbt_p1?question=California residential lease agreement">Use</a>
-                    </span>
+                    <span className='me-2'>Use</span>
                     <FontAwesomeIcon height={13} icon={faAngleRight} /></div>
                 </div>
               </div>
@@ -87,13 +134,11 @@ const Home = () => {
                     <Image src="/images/icons/Comment-notfil.png" alt="My Image" width={16}
                       height={10} className='me-2 cment_nofill' />
                     <div className='text-start'>
-                      "Vermont motor vehicle bill of sale"
+                      "California residential lease agreement"
                     </div>
                   </span>
                   <div className='float-end me-2 usediv rounded'>
-                    <span class="me-2 use_question">
-                      <a href="/chatgbt_p1?question=Vermont motor vehicle bill of sale">Use</a>
-                    </span>
+                    <span className='me-2'>Use</span>
                     <FontAwesomeIcon height={13} icon={faAngleRight} /></div>
                 </div>
               </div>
@@ -103,13 +148,11 @@ const Home = () => {
                     <Image src="/images/icons/Comment-notfil.png" alt="My Image" width={16}
                       height={10} className='me-2 cment_nofill' />
                     <div className='text-start'>
-                      "Living will document specific to oklahoma"
+                      "California residential lease agreement"
                     </div>
                   </span>
                   <div className='float-end me-2 usediv rounded'>
-                    <span class="me-2 use_question">
-                      <a href="/chatgbt_p1?question=Living will document specific to oklahoma">Use</a>
-                    </span>
+                    <span className='me-2'>Use</span>
                     <FontAwesomeIcon height={13} icon={faAngleRight} /></div>
                 </div>
               </div>
@@ -119,13 +162,11 @@ const Home = () => {
                     <Image src="/images/icons/Comment-notfil.png" alt="My Image" width={16}
                       height={10} className='me-2 cment_nofill' />
                     <div className='text-start'>
-                      "Connecticut LLC operating agreement"
+                      "California residential lease agreement"
                     </div>
                   </span>
                   <div className='float-end me-2 usediv rounded'>
-                    <span class="me-2 use_question">
-                      <a href="/chatgbt_p1?question=Connecticut LLC operating agreement">Use</a>
-                    </span>
+                    <span className='me-2'>Use</span>
                     <FontAwesomeIcon height={13} icon={faAngleRight} /></div>
                 </div>
               </div>
@@ -135,13 +176,11 @@ const Home = () => {
                     <Image src="/images/icons/Comment-notfil.png" alt="My Image" width={16}
                       height={10} className='me-2 cment_nofill' />
                     <div className='text-start'>
-                      "Texas power of attorney form"
+                      "California residential lease agreement"
                     </div>
                   </span>
                   <div className='float-end me-2 usediv rounded'>
-                    <span class="me-2 use_question">
-                      <a href="/chatgbt_p1?question=Texas power of attorney form">Use</a>
-                    </span>
+                    <span className='me-2'>Use</span>
                     <FontAwesomeIcon height={13} icon={faAngleRight} /></div>
                 </div>
               </div>
@@ -151,13 +190,11 @@ const Home = () => {
                     <Image src="/images/icons/Comment-notfil.png" alt="My Image" width={16}
                       height={10} className='me-2 cment_nofill' />
                     <div className='text-start'>
-                      "Roommate agreement template"
+                      "California residential lease agreement"
                     </div>
                   </span>
                   <div className='float-end me-2 usediv rounded'>
-                    <span class="me-2 use_question">
-                      <a href="/chatgbt_p1?question=Roommate agreement template">Use</a>
-                    </span>
+                    <span className='me-2'>Use</span>
                     <FontAwesomeIcon height={13} icon={faAngleRight} /></div>
                 </div>
               </div>
@@ -167,13 +204,11 @@ const Home = () => {
                     <Image src="/images/icons/Comment-notfil.png" alt="My Image" width={16}
                       height={10} className='me-2 cment_nofill' />
                     <div className='text-start'>
-                      "Simple, single page rental application"
+                      "California residential lease agreement"
                     </div>
                   </span>
                   <div className='float-end me-2 usediv rounded'>
-                    <span class="me-2 use_question">
-                      <a href="/chatgbt_p1?question=Simple, single page rental application">Use</a>
-                    </span>
+                    <span className='me-2'>Use</span>
                     <FontAwesomeIcon height={13} icon={faAngleRight} /></div>
                 </div>
               </div>
@@ -183,13 +218,11 @@ const Home = () => {
                     <Image src="/images/icons/Comment-notfil.png" alt="My Image" width={16}
                       height={10} className='me-2 cment_nofill' />
                     <div className='text-start'>
-                      "New hampshire non-disclosure agreement"
+                      "California residential lease agreement"
                     </div>
                   </span>
                   <div className='float-end me-2 usediv rounded'>
-                    <span class="me-2 use_question">
-                      <a href="/chatgbt_p1?question=New hampshire non-disclosure agreement">Use</a>
-                    </span>
+                    <span className='me-2'>Use</span>
                     <FontAwesomeIcon height={13} icon={faAngleRight} /></div>
                 </div>
               </div>
@@ -199,13 +232,11 @@ const Home = () => {
                     <Image src="/images/icons/Comment-notfil.png" alt="My Image" width={16}
                       height={10} className='me-2 cment_nofill' />
                     <div className='text-start'>
-                      "Carpet cleaning invoice with 3 line items"
+                      "California residential lease agreement"
                     </div>
                   </span>
                   <div className='float-end me-2 usediv rounded'>
-                    <span class="me-2 use_question">
-                      <a href="/chatgbt_p1?question=Carpet cleaning invoice with 3 line items">Use</a>
-                    </span>
+                    <span className='me-2'>Use</span>
                     <FontAwesomeIcon height={13} icon={faAngleRight} /></div>
                 </div>
               </div>

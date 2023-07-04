@@ -9,6 +9,7 @@ const Header = () => {
     const { query } = router;
     const tokenParam = query.token;
     const loggedParam = query.logged;
+    const error = query.error;
     const [logged, setLogged] = useState(false);
 
     const logOut = () => {
@@ -56,6 +57,13 @@ const Header = () => {
             toast('Looged in succcessfully', { hideProgressBar: false, autoClose: 5000, type: 'success' })
         }
     }, [tokenParam])
+
+    useEffect(() => {
+        if(error){
+            toast('Error ocured. Try again later or contact our admin', 
+            { hideProgressBar: false, autoClose: 5000, type: 'error' })
+        }
+    }, [error])
 
     useEffect(() => {
         // sessionStorage.removeItem("user");

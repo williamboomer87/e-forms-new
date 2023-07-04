@@ -155,7 +155,6 @@ const ChatgbtP1 = ({ }) => {
       chatLine.push(chtObj)
 
       var tempsubmitArray = JSON.parse(localStorage.getItem('submitArray'));
-      // console.log(questionkeys[answered])
 
       // Create the second form API input
       if (!tempsubmitArray.qa) {
@@ -207,11 +206,10 @@ const ChatgbtP1 = ({ }) => {
     }
   };
 
+  var count = 0;
+
   const fetchResult = async (question) => {
-
-    localStorage.setItem('promptQuestion', question);
-
-
+    count++;
     try {
       const response = await fetch(process.env.NEXT_PUBLIC_API_URL + 'api/generate/input', {
         method: 'POST',
@@ -234,6 +232,7 @@ const ChatgbtP1 = ({ }) => {
 
         const qkeys = Object.keys(data.data);
 
+        localStorage.setItem('promptQuestion', question);
         localStorage.setItem('questions', JSON.stringify(result));
         localStorage.setItem('answered', 0); // answer count only update when answer addded
         localStorage.setItem('answers', JSON.stringify([]));
@@ -263,8 +262,21 @@ const ChatgbtP1 = ({ }) => {
         localStorage.setItem('messages', JSON.stringify(messages));
 
         setInitialValues(true)
+      }else{
+        // Run three times and redirect to home
+        if(count < 3){
+          fetchResult(question)
+        }else{
+          router.push('/?error=backend_error');
+        }
       }
     } catch (error) {
+      // Run three times and redirect to home
+      if(count < 3){
+        fetchResult(question)
+      }else{
+        router.push('/?error=backend_error');
+      }
       console.error('Error:', error);
     }
   }

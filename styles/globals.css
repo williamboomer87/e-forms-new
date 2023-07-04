@@ -144,7 +144,11 @@ button {
 .usediv {
   border: 1px solid;
   padding: 2px 10px;
-  color: #0CA47E;
+  color: #0CA47E !important;
+}
+
+.usediv a:hover{
+  color: #0CA47E !important;
 }
 
 .darkgrey {
