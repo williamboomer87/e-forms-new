@@ -32,12 +32,20 @@ const SignIn = () => {
             const user = data.userData;
             sessionStorage.setItem('user', JSON.stringify(user));
 
-            const storedData = localStorage.getItem('questrionArr');
-            const storedArray = JSON.parse(localStorage.getItem('answers'));
+            // const storedData = localStorage.getItem('questrionArr');
+            // const storedArray = JSON.parse(localStorage.getItem('answers'));
 
-            if (storedData && storedArray && storedArray.length) {
+            // if (storedData && storedArray && storedArray.length) {
+            //     router.push('/document_preview?logged=true');
+            // } else {
+            //     router.push('/?logged=true');
+            // }
+            var tempquestionCount = parseInt(localStorage.getItem('questionCount'), 10)
+            var tempanswered = parseInt(localStorage.getItem('answered'), 10)
+
+            if(tempquestionCount && tempanswered && (tempquestionCount <= tempanswered)){
                 router.push('/document_preview?logged=true');
-            } else {
+            }else{
                 router.push('/?logged=true');
             }
         } else if (statusCode === 401) {

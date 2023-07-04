@@ -9,246 +9,89 @@ import Question from '../components/question';
 import Answer from '../components/answer';
 import { useRouter } from 'next/router';
 
+
 const ChatgbtP1 = ({ }) => {
 
-  const [result, setResult] = useState({});
-  const [inputValue, setInputValue] = useState('')
-  const [answers, setAnswers] = useState([]);
-  const [qcountstate, setQcountstate] = useState(0);
-  const [isLoad, setIsload] = useState(false);
-  const [loadQuestions, setLoadQuestions] = useState(false);
-  const [appendedComponents, setAppendedComponents] = useState([]);
-
   const router = useRouter();
-
+  const [chatBoxLoader, setChatBoxLoader] = useState(false);
+  const qdivRef = useRef(null);
+  const [appendedComponents, setAppendedComponents] = useState([]);
+  const [promptQuestion, setPromptQuestion] = useState('')
+  const [questionCount, setQuestionCount] = useState(0)
+  const [answered, setAnswered] = useState(0)
+  const [questions, setQuestions] = useState([])
+  const [questionkeys, setQuestionkeys] = useState([])
+  const [documentLoad, setDocumentLoad] = useState(false);
 
   const textareaRef = useRef(null);
-  const qdivRef = useRef(null);
-
-  function setInitialValues() {
-    setInputValue(localStorage.getItem('inputValue'))
-    const storedData = localStorage.getItem('questrionArr');
-    const storedArray = JSON.parse(localStorage.getItem('answers'));
-    const userQA = JSON.parse(localStorage.getItem('userQA'));
-
-    var qcount = localStorage.getItem('qcount');
-    if (qcount) {
-      setQcountstate(qcount)
-    }
-
-    if (storedData) {
-      const parsedData = JSON.parse(storedData);
-      setResult(parsedData.completion);
-
-      if (storedArray && storedArray.length) {
-        setAnswers(storedArray)
-        if (parsedData.completion && parsedData.completion.length) {
-          storedArray.map((item, index) => {
-            
-            // userQA.map((qaitem, qaindex) => {
-            //   if(index == qaindex){
-            //     handleAppendComponent('answer', storedArray[index])
-            //   }
-            // })
-
-            handleAppendComponent('answer', storedArray[index])
-            handleAppendComponent('question', parsedData.completion[index + 1])
-          });
-        }
-      }
-    }
-  }
-
-  useEffect(() => {
-    setInitialValues()
-  }, [])
-
-
-  async function fetchResult(question) {
-    const response = await fetch(process.env.NEXT_PUBLIC_API_URL + 'api/generate/input', {
-      method: 'POST',
-      body: JSON.stringify({
-        "prompt": question
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const data = await response.json();
-
-    if (data) {
-      const completion = Object.keys(data.data).map(key => data.data[key]);
-      const result = { Id: data.Id, completion };
-      const content = data.chat_responst_1;
-
-      const qkeys = Object.keys(data.data);
-
-      localStorage.clear();
-
-      localStorage.setItem('questrionArr', JSON.stringify(result));
-      localStorage.setItem('qcount', 0);
-      localStorage.setItem('answers', JSON.stringify([]));
-      localStorage.setItem('qkeys', JSON.stringify(qkeys));
-      localStorage.setItem('userQA', JSON.stringify([]))
-
-      var messages = {
-        "messages": [
-          { "role": "system", "content": "You are a helpful assistant." },
-          { "role": "user", "content": "Create a document for " + question + " with dummy data" },
-          {
-            "role": "user",
-            "content": content
-          },
-          {
-            "role": "assistant", 
-            "content": JSON.stringify(completion)
-          }
-        ]
-      }
-
-      localStorage.setItem('messages', JSON.stringify(messages));
-
-      setLoadQuestions(false)
-      setAppendedComponents([])
-      setInitialValues()
-    }
-  }
 
   useEffect(() => {
     const { question } = router.query;
-    var tempq = localStorage.getItem('inputValue');
+    var tempq = localStorage.getItem('promptQuestion');
 
     if (question && question != tempq) {
-      setLoadQuestions(true)
-      localStorage.setItem('inputValue', question);
+      setChatBoxLoader(true)
       fetchResult(question)
+    } else {
+      // Here is the perfect place for redirect
+      if (question) {
+        var tempquestionCount = parseInt(localStorage.getItem('questionCount'), 10)
+        var tempanswered = parseInt(localStorage.getItem('answered'), 10)
+
+        if (tempquestionCount <= tempanswered) {
+          sendForm()
+        }
+      }
     }
+
   }, [router.query]);
 
+  const setInitialValues = (emptychatline) => {
+    setQuestionkeys(JSON.parse(localStorage.getItem('questionkeys')))
 
-  useEffect(() => {
-    if (answers && answers.length) {
-      localStorage.setItem('answers', JSON.stringify(answers));
-      const storedArray2 = JSON.parse(localStorage.getItem('answers'));
+    var tempquestionCount = parseInt(localStorage.getItem('questionCount'), 10)
+    var tempanswered = parseInt(localStorage.getItem('answered'), 10)
 
-      // Sending to second form
-      var qamount = (result && result.length) ? result.length : 0;
-      if (storedArray2.length >= qamount) {
-        setIsload(true)
-        var qa = {};
+    setPromptQuestion(localStorage.getItem('promptQuestion'))
+    setQuestionCount(tempquestionCount)
+    setAnswered(tempanswered)
 
-        var storedData = localStorage.getItem('questrionArr');
-        var qkeys = JSON.parse(localStorage.getItem('qkeys'));
-        storedData = JSON.parse(storedData);
-        var id = storedData.Id;
-        // console.log(id)
+    // if (tempquestionCount <= tempanswered) {
+    //   sendForm()
+    // }
 
-        if (qamount && id) {
+    const parsedData = JSON.parse(localStorage.getItem('questions'));
+    setQuestions(parsedData?.completion);
 
-          var form = {
-            "Id": id,
-          }
-
-          for (let i = 0; i < qamount; i++) {
-            qa[qkeys[i]] = answers[i]
-          }
-          form.qa = qa;
-          sendForm(form)
+    if (!emptychatline) {
+      var chatline = JSON.parse(localStorage.getItem('chatLine'));
+      chatline?.forEach(line => {
+        if (line.type == 'question') {
+          handleAppendComponent('question', line.value)
         }
 
-      }
-    }
-  }, [answers]);
-
-  const sendForm = async (formData) => {
-    try {
-      const response = await fetch(process.env.NEXT_PUBLIC_API_URL + 'api/form', {
-        method: 'POST',
-        body: JSON.stringify(formData),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        if (line.type == 'answer') {
+          handleAppendComponent('answer', line.value)
+        }
       });
-
-      const rdata = await response.json();
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      if (response.ok) {
-        // console.log(rdata)
-        localStorage.setItem('formdata', JSON.stringify(rdata));
-        router.push('/document_preview');
-      }
-
-      // const data = await response.json();
-      // console.log(data)
-    } catch (error) {
-      console.error('Error:', error);
+    }else{
+      setAppendedComponents([])
     }
   }
 
+  useEffect(() => {
+    setInitialValues(false)
+  }, [])
 
-  const submitAnswer = async () => {
-    // Add answer to chat
-    const answer = textareaRef.current.value;
-    handleAppendComponent('answer', answer)
-    textareaRef.current.value = '';
-
-    if (answer.endsWith("?")) {
-      var messages = JSON.parse(localStorage.getItem('messages'));
-      
-      messages.messages.push({ "role": "user", "content": answer });
-      var updatedMessagesString = JSON.stringify(messages);
-      localStorage.setItem('messages', updatedMessagesString);
-
-      const response = await fetch(process.env.NEXT_PUBLIC_API_URL + 'api/generate/chat', {
-        method: 'POST',
-        body: updatedMessagesString,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const rdata = await response.json();
-      
-      if (response.ok) {
-        handleAppendComponent('question', rdata.chat)
-
-        var qcount = localStorage.getItem('qcount');
-        var userQA = JSON.parse(localStorage.getItem('userQA'));
-
-        var newObj = {
-          "place": qcount,
-          "question": answer,
-          "answer": rdata.chat
-        };
-
-        userQA.push(newObj);
-        localStorage.setItem('userQA', JSON.stringify(userQA));
-      }
-    } else {
-      setAnswers(prevAnswers => [...prevAnswers, answer]);
-
-      // Add question to chat
-      var qcount = localStorage.getItem('qcount');
-      if (qcount) {
-        handleAppendComponent('question', result[++qcount])
-        localStorage.setItem('qcount', qcount);
-        setQcountstate(qcount)
-      }
-    }
-  }
-
-  const handleKeyDown = (event) => {
-    if (event.key === 'Enter') {
-      submitAnswer()
+  const scrollToBottom = () => {
+    if (qdivRef.current) {
+      qdivRef.current.scrollTop = qdivRef.current.scrollHeight;
     }
   };
 
-
+  useEffect(() => {
+    scrollToBottom()
+  }, [appendedComponents])
 
   const handleAppendComponent = (type, content) => {
     if (type == 'question') {
@@ -262,15 +105,169 @@ const ChatgbtP1 = ({ }) => {
     setAppendedComponents(prevComponents => [...prevComponents, componentToAppend]);
   };
 
-  const scrollToBottom = () => {
-    if (qdivRef.current) {
-      qdivRef.current.scrollTop = qdivRef.current.scrollHeight;
+  const submitAnswer = async () => {
+    const answer = textareaRef.current.value;
+    handleAppendComponent('answer', answer)
+    textareaRef.current.value = '';
+    var chatLine = JSON.parse(localStorage.getItem('chatLine'))
+    var chtObj = {
+      "type": "answer",
+      "value": answer
+    }
+    chatLine.push(chtObj)
+
+    if (answer.endsWith("?")) {
+      var messages = JSON.parse(localStorage.getItem('messages'));
+      messages.messages.push({ "role": "user", "content": answer });
+      var updatedMessagesString = JSON.stringify(messages);
+      localStorage.setItem('messages', updatedMessagesString);
+
+      const response = await fetch(process.env.NEXT_PUBLIC_API_URL + 'api/generate/chat', {
+        method: 'POST',
+        body: updatedMessagesString,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const rdata = await response.json();
+
+      if (response.ok) {
+        handleAppendComponent('question', rdata.chat)
+
+        chtObj = {
+          "type": "question",
+          "value": rdata.chat
+        }
+
+        chatLine.push(chtObj)
+      }
+
+    } else {
+      setAnswered(answered + 1);
+      localStorage.setItem('answered', answered + 1);
+
+      handleAppendComponent('question', questions[answered + 1])
+      chtObj = {
+        "type": "question",
+        "value": questions[answered + 1]
+      }
+      chatLine.push(chtObj)
+
+      var tempsubmitArray = JSON.parse(localStorage.getItem('submitArray'));
+      // console.log(questionkeys[answered])
+
+      // Create the second form API input
+      if (!tempsubmitArray.qa) {
+        tempsubmitArray.qa = {};
+      }
+
+      tempsubmitArray.qa[questionkeys[answered]] = answer;
+      localStorage.setItem('submitArray', JSON.stringify(tempsubmitArray));
+
+      if (answered == (questionCount - 1)) {
+        sendForm();
+      }
+    }
+
+    localStorage.setItem('chatLine', JSON.stringify(chatLine));
+  }
+
+  const sendForm = async () => {
+    setDocumentLoad(true)
+
+    try {
+      const response = await fetch(process.env.NEXT_PUBLIC_API_URL + 'api/form', {
+        method: 'POST',
+        body: localStorage.getItem('submitArray'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      var rdata = await response.json();
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      if (response.ok) {
+        // console.log(rdata)
+        localStorage.setItem('formdata', JSON.stringify(rdata));
+        router.push('/document_preview');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter') {
+      submitAnswer()
     }
   };
 
-  useEffect(() => {
-    scrollToBottom()
-  }, [appendedComponents])
+  const fetchResult = async (question) => {
+
+    localStorage.setItem('promptQuestion', question);
+
+
+    try {
+      const response = await fetch(process.env.NEXT_PUBLIC_API_URL + 'api/generate/input', {
+        method: 'POST',
+        body: JSON.stringify({
+          "prompt": question
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data) {
+        setChatBoxLoader(false)
+
+        const completion = Object.keys(data.data).map(key => data.data[key]);
+        const result = { Id: data.Id, completion };
+        const content = data.chat_responst_1;
+
+        const qkeys = Object.keys(data.data);
+
+        localStorage.setItem('questions', JSON.stringify(result));
+        localStorage.setItem('answered', 0); // answer count only update when answer addded
+        localStorage.setItem('answers', JSON.stringify([]));
+        localStorage.setItem('questionkeys', JSON.stringify(qkeys));
+        localStorage.setItem('questionCount', qkeys.length);
+        localStorage.setItem('chatLine', JSON.stringify([])) // Update when item added to chat
+
+        var tempsubmitArray = { Id: data.Id };
+
+        localStorage.setItem('submitArray', JSON.stringify(tempsubmitArray));
+
+        var messages = {
+          "messages": [
+            { "role": "system", "content": "You are a helpful assistant." },
+            { "role": "user", "content": "Create a document for " + question + " with dummy data" },
+            {
+              "role": "user",
+              "content": content
+            },
+            {
+              "role": "assistant",
+              "content": JSON.stringify(completion)
+            }
+          ]
+        }
+
+        localStorage.setItem('messages', JSON.stringify(messages));
+
+        setInitialValues(true)
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
 
 
   return (
@@ -284,7 +281,8 @@ const ChatgbtP1 = ({ }) => {
       <Header />
 
       <div className="container max991">
-        {loadQuestions ? (
+
+        {chatBoxLoader ? (
           <div className="row mt-5">
             <div className="col text-center">
               <div className="row row-cols-12 g-4 g-lg-4">
@@ -303,13 +301,13 @@ const ChatgbtP1 = ({ }) => {
           <div>
             <div className="text-center mt-5">
               <h3 className="lh-lg">
-                {inputValue}
+                {promptQuestion}
               </h3>
               <p className="lh-lg mb-3">
                 We’re going to ask you a series of step by step questions to build
                 your agreement.
               </p>
-              <p className="lh-lg mb-3">{qcountstate} of {(result && result.length) ? result.length : ''} questions answered
+              <p className="lh-lg mb-3">{answered} of {questionCount} questions answered
               </p>
             </div>
             <div className="row">
@@ -317,7 +315,7 @@ const ChatgbtP1 = ({ }) => {
 
                 <div className="row row-cols-12 g-4 g-lg-4">
                   <div className="col-md-12">
-                    {isLoad ? (
+                    {documentLoad ? (
                       <div className="dark_gray text-white p-4 pe-3 rounded height200 mb-3 position-relative">
                         <p>Please wait while we build your document.</p>
                         <div className="loader-container">
@@ -336,11 +334,11 @@ const ChatgbtP1 = ({ }) => {
                               </div>
                               <div className="col-11">
                                 <p className="text-start">
-                                  Great! I will guide you through the process of creating a <span dangerouslySetInnerHTML={{ __html: inputValue }} /> by asking you a series of questions.
+                                  Great! I will guide you through the process of creating a by asking you a series of questions.
                                   Please provide accurate and detailed information as you respond
                                   to the questions. Once we have collected all the necessary
                                   information, I'll help you create the lease agreement. Let's
-                                  start with the first question. {(result && result.length) ? result[0] : ''}?
+                                  start with the first question. {(questions && questions.length) ? questions[0] : ''}
                                 </p>
                               </div>
                             </div>
@@ -371,7 +369,6 @@ const ChatgbtP1 = ({ }) => {
                       </div>
                     )}
 
-
                   </div>
 
 
@@ -390,6 +387,4 @@ const ChatgbtP1 = ({ }) => {
 };
 
 export default ChatgbtP1;
-
-
 

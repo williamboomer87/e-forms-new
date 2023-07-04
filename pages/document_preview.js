@@ -85,7 +85,7 @@ const documentPreview = () => {
   useEffect(() => {
     showPDF();
 
-    setInputValue(localStorage.getItem('inputValue'));
+    setInputValue(localStorage.getItem('promptQuestion'));
     const storedData = localStorage.getItem('questrionArr');
     const storedArray = JSON.parse(localStorage.getItem('answers'));
 

@@ -9,7 +9,7 @@ const PaymentConfirmation = () => {
     const router = useRouter();
 
     useEffect(() => {
-        var inputValue = localStorage.getItem('inputValue');
+        var inputValue = localStorage.getItem('promptQuestion');
         
 
         const redirectTimeout = setTimeout(() => {
