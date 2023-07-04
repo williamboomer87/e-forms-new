@@ -196,7 +196,7 @@ const ChatgbtP1 = ({ }) => {
         router.push('/document_preview');
       }
     } catch (error) {
-      // console.error('Error:', error);
+      console.error('Error:', error);
     }
   }
 
@@ -277,7 +277,7 @@ const ChatgbtP1 = ({ }) => {
       }else{
         router.push('/?error=backend_error');
       }
-      // console.error('Error:', error);
+      console.error('Error:', error);
     }
   }
 
