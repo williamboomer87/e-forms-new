@@ -74,7 +74,7 @@ const ChatgbtP1 = ({ }) => {
           handleAppendComponent('answer', line.value)
         }
       });
-    }else{
+    } else {
       setAppendedComponents([])
     }
   }
@@ -93,17 +93,18 @@ const ChatgbtP1 = ({ }) => {
     scrollToBottom()
   }, [appendedComponents])
 
-  const handleAppendComponent = (type, content) => {
+  const handleAppendComponent = async (type, content, withEffect = false) => {
     if (type == 'question') {
-      var componentToAppend = <Question text={content} />;
+      var componentToAppend = await <Question text={content} withEffect={withEffect}/>;
     }
 
     if (type == 'answer') {
-      var componentToAppend = <Answer text={content} />;
+      var componentToAppend = await <Answer text={content} />;
     }
 
     setAppendedComponents(prevComponents => [...prevComponents, componentToAppend]);
   };
+
 
   const submitAnswer = async () => {
     const answer = textareaRef.current.value;
@@ -133,7 +134,7 @@ const ChatgbtP1 = ({ }) => {
       const rdata = await response.json();
 
       if (response.ok) {
-        handleAppendComponent('question', rdata.chat)
+        handleAppendComponent('question', rdata.chat, true)
 
         chtObj = {
           "type": "question",
@@ -147,7 +148,7 @@ const ChatgbtP1 = ({ }) => {
       setAnswered(answered + 1);
       localStorage.setItem('answered', answered + 1);
 
-      handleAppendComponent('question', questions[answered + 1])
+      handleAppendComponent('question', questions[answered + 1], true)
       chtObj = {
         "type": "question",
         "value": questions[answered + 1]
@@ -262,19 +263,19 @@ const ChatgbtP1 = ({ }) => {
         localStorage.setItem('messages', JSON.stringify(messages));
 
         setInitialValues(true)
-      }else{
+      } else {
         // Run three times and redirect to home
-        if(count < 3){
+        if (count < 3) {
           fetchResult(question)
-        }else{
+        } else {
           router.push('/?error=backend_error');
         }
       }
     } catch (error) {
       // Run three times and redirect to home
-      if(count < 3){
+      if (count < 3) {
         fetchResult(question)
-      }else{
+      } else {
         router.push('/?error=backend_error');
       }
       // console.error('Error:', error);
