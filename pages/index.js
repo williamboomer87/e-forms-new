@@ -9,11 +9,9 @@ import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import Image from 'next/image';
 import { faAngleRight } from '@fortawesome/free-solid-svg-icons';
 import HomeFooter from '../components/homefooter';
-import react from 'react';
 import { useRouter } from 'next/router';
-import { connect } from 'react-redux';
-import { setInputValue, fetchResult } from '../redux/store';
-
+// import { connect } from 'react-redux';
+// import { setInputValue, fetchResult } from '../redux/store';
 
 const Home = () => {
   const router = useRouter();
@@ -75,7 +73,7 @@ const Home = () => {
                   </span>
                   <div className='float-end me-2 usediv rounded'>
                     {/* <span className='me-2'>Use</span> */}
-                    <span class="me-2 use_question">
+                    <span className="me-2 use_question">
                       <a href="/chatgbt_p1?question=California residential lease agreement">Use</a>
                     </span>
                     <FontAwesomeIcon height={13} icon={faAngleRight} /></div>
@@ -91,7 +89,7 @@ const Home = () => {
                     </div>
                   </span>
                   <div className='float-end me-2 usediv rounded'>
-                    <span class="me-2 use_question">
+                    <span className="me-2 use_question">
                       <a href="/chatgbt_p1?question=Vermont motor vehicle bill of sale">Use</a>
                     </span>
                     <FontAwesomeIcon height={13} icon={faAngleRight} /></div>
@@ -107,7 +105,7 @@ const Home = () => {
                     </div>
                   </span>
                   <div className='float-end me-2 usediv rounded'>
-                    <span class="me-2 use_question">
+                    <span className="me-2 use_question">
                       <a href="/chatgbt_p1?question=Living will document specific to oklahoma">Use</a>
                     </span>
                     <FontAwesomeIcon height={13} icon={faAngleRight} /></div>
@@ -123,7 +121,7 @@ const Home = () => {
                     </div>
                   </span>
                   <div className='float-end me-2 usediv rounded'>
-                    <span class="me-2 use_question">
+                    <span className="me-2 use_question">
                       <a href="/chatgbt_p1?question=Connecticut LLC operating agreement">Use</a>
                     </span>
                     <FontAwesomeIcon height={13} icon={faAngleRight} /></div>
@@ -139,7 +137,7 @@ const Home = () => {
                     </div>
                   </span>
                   <div className='float-end me-2 usediv rounded'>
-                    <span class="me-2 use_question">
+                    <span className="me-2 use_question">
                       <a href="/chatgbt_p1?question=Texas power of attorney form">Use</a>
                     </span>
                     <FontAwesomeIcon height={13} icon={faAngleRight} /></div>
@@ -155,7 +153,7 @@ const Home = () => {
                     </div>
                   </span>
                   <div className='float-end me-2 usediv rounded'>
-                    <span class="me-2 use_question">
+                    <span className="me-2 use_question">
                       <a href="/chatgbt_p1?question=Roommate agreement template">Use</a>
                     </span>
                     <FontAwesomeIcon height={13} icon={faAngleRight} /></div>
@@ -171,7 +169,7 @@ const Home = () => {
                     </div>
                   </span>
                   <div className='float-end me-2 usediv rounded'>
-                    <span class="me-2 use_question">
+                    <span className="me-2 use_question">
                       <a href="/chatgbt_p1?question=Simple, single page rental application">Use</a>
                     </span>
                     <FontAwesomeIcon height={13} icon={faAngleRight} /></div>
@@ -187,7 +185,7 @@ const Home = () => {
                     </div>
                   </span>
                   <div className='float-end me-2 usediv rounded'>
-                    <span class="me-2 use_question">
+                    <span className="me-2 use_question">
                       <a href="/chatgbt_p1?question=New hampshire non-disclosure agreement">Use</a>
                     </span>
                     <FontAwesomeIcon height={13} icon={faAngleRight} /></div>
@@ -203,7 +201,7 @@ const Home = () => {
                     </div>
                   </span>
                   <div className='float-end me-2 usediv rounded'>
-                    <span class="me-2 use_question">
+                    <span className="me-2 use_question">
                       <a href="/chatgbt_p1?question=Carpet cleaning invoice with 3 line items">Use</a>
                     </span>
                     <FontAwesomeIcon height={13} icon={faAngleRight} /></div>
@@ -222,15 +220,15 @@ const Home = () => {
   )
 }
 
-// export default Home
+export default Home
 
-const mapStateToProps = (state) => ({
-  inputValue: state.input.inputValue,
-  result: state.input.result,
-  loading: state.input.loading,
-  error: state.input.error,
-});
+// const mapStateToProps = (state) => ({
+//   inputValue: state.input.inputValue,
+//   result: state.input.result,
+//   loading: state.input.loading,
+//   error: state.input.error,
+// });
 
-const mapDispatchToProps = { setInputValue, fetchResult };
+// const mapDispatchToProps = { setInputValue, fetchResult };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Home);
+// export default connect(mapStateToProps, mapDispatchToProps)(Home);

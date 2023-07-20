@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
@@ -59,9 +60,9 @@ const Header = () => {
     }, [tokenParam])
 
     useEffect(() => {
-        if(error){
-            toast('Error ocured. Try again later or contact our admin', 
-            { hideProgressBar: false, autoClose: 5000, type: 'error' })
+        if (error) {
+            toast('Error ocured. Try again later or contact our admin',
+                { hideProgressBar: false, autoClose: 5000, type: 'error' })
         }
     }, [error])
 
@@ -76,7 +77,13 @@ const Header = () => {
     return (
         <nav className='menu_black'>
             <div className='container py-3 d-flex justify-content-between'>
-                <h2 className='text-white align-self-center'>Forms.ai</h2>
+                {/* <h2 className='text-white align-self-center'>Forms.ai</h2> */}
+                <Image
+                    src="/images/logo-01.png"
+                    alt="Logo"
+                    width={100} // Set the desired width
+                    height={100} // Set the desired height
+                />
                 <div className="float-right d-flex justify-content-between">
                     <div className="dropdown">
                         <button

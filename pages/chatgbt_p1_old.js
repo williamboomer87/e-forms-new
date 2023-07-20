@@ -77,8 +77,10 @@ const ChatgbtP1 = ({ }) => {
 
     const data = await response.json();
 
+    console.log("data", data.data.questions)
+
     if (data) {
-      const completion = Object.keys(data.data).map(key => data.data[key]);
+      const completion = Object.keys(data.data.questions).map(key => data.data[key]);
       const result = { Id: data.Id, completion };
       const content = data.chat_responst_1;
 
