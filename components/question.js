@@ -39,7 +39,7 @@ const Question = (props) => {
           <Image src="/images/chat-symbol-Group.svg" alt="My Image" width={30} height={30} />
         </div>
         <div className="col-11">
-          <p className="text-start">{displayText}</p>
+          <p className="text-start" dangerouslySetInnerHTML={{ __html: displayText }}/>
         </div>
       </div>
     </div>

@@ -27,15 +27,34 @@ const ChatgbtP1 = ({ }) => {
 
   const textareaRef = useRef(null);
 
-  const [firstQuestion, setFirstQuestion] = useState('')
-  const [apiMessages, setApiMessages] = useState('')
+  const updateAnswer = useSelector((state) => state.updateAnswer);
+  const updateAnswerId = useSelector((state) => state.updateAnswerId);
+
+  useEffect(() => {
+    if (updateAnswer) {
+      textareaRef.current.focus();
+      console.log(updateAnswerId);
+    }
+  }, [updateAnswer]);
+
 
   useEffect(() => {
     const { question } = router.query;
+    var tempq = localStorage.getItem('promptQuestion');
 
-    if (question) {
+    if (question && question != tempq) {
       setChatBoxLoader(true)
       fetchResult(question)
+    } else {
+      // Here is the perfect place for redirect
+      if (question) {
+        var tempquestionCount = parseInt(localStorage.getItem('questionCount'), 10)
+        var tempanswered = parseInt(localStorage.getItem('answered'), 10)
+
+        if (tempquestionCount <= tempanswered) {
+          sendForm()
+        }
+      }
     }
 
   }, [router.query]);
@@ -83,17 +102,13 @@ const ChatgbtP1 = ({ }) => {
     scrollToBottom()
   }, [appendedComponents])
 
-  function hasAllKeys(obj, keys) {
-    return keys.every(key => obj.hasOwnProperty(key));
-  }
-
-  const handleAppendComponent = async (type, content, withEffect = false) => {
+  const handleAppendComponent = async (type, content, withEffect = false, object = null) => {
     if (type == 'question') {
       var componentToAppend = await <Question text={content} withEffect={withEffect} />;
     }
 
     if (type == 'answer') {
-      var componentToAppend = await <Answer text={content} />;
+      var componentToAppend = await <Answer text={content} object={object} />;
     }
 
     setAppendedComponents(prevComponents => [...prevComponents, componentToAppend]);
@@ -106,48 +121,132 @@ const ChatgbtP1 = ({ }) => {
   const submitAnswer = async () => {
     const answer = textareaRef.current.value;
 
-    handleAppendComponent('answer', answer)
+    if (updateAnswer) { // Update the answer after button clicked
+      // Update answer section
+      var chatLine = JSON.parse(localStorage.getItem('chatLine'))
+      const updatedData = chatLine.map((item) => {
+        if (item.id == updateAnswerId) {
+          return { ...item, value: answer };
+        }
+        return item;
+      });
 
-    textareaRef.current.value = '';
+      setAppendedComponents([])
 
-    var tempapiMessages = apiMessages;
-    var tempObj = {
-      role: "user",
-      content: answer
+      updatedData?.forEach(line => {
+        if (line.type == 'question') {
+          handleAppendComponent('question', line.value)
+        }
+
+        if (line.type == 'answer') {
+          handleAppendComponent('answer', line.value, false, line)
+        }
+      });
+
+      localStorage.setItem('chatLine', JSON.stringify(updatedData));
+      // console.log(chatLine)
+      // alert('update')
+    } else {
+      var uid = generateUniqueId()
+      var chtObj = {
+        "id": uid,
+        "type": "answer",
+        "value": answer,
+        "editable": (!answer.endsWith("?"))
+      }
+
+      handleAppendComponent('answer', answer, false, chtObj)
+      textareaRef.current.value = '';
+      var chatLine = JSON.parse(localStorage.getItem('chatLine'))
+      chatLine.push(chtObj)
+
+      if (answer.endsWith("?")) { // User ask a question 
+        var messages = JSON.parse(localStorage.getItem('messages'));
+        messages.messages.push({ "role": "user", "content": answer });
+        var updatedMessagesString = JSON.stringify(messages);
+        localStorage.setItem('messages', updatedMessagesString);
+
+        const response = await fetch(process.env.NEXT_PUBLIC_API_URL + 'api/generate/chat', {
+          method: 'POST',
+          body: updatedMessagesString,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const rdata = await response.json();
+
+        if (response.ok) {
+          handleAppendComponent('question', rdata.chat, true)
+
+          chtObj = {
+            "id": uid,
+            "type": "question",
+            "value": rdata.chat
+          }
+
+          chatLine.push(chtObj)
+        }
+
+      } else { // 
+        setAnswered(answered + 1);
+        localStorage.setItem('answered', answered + 1);
+
+        handleAppendComponent('question', questions[answered + 1], true)
+        chtObj = {
+          "id": generateUniqueId(),
+          "type": "question",
+          "value": questions[answered + 1]
+        }
+        chatLine.push(chtObj)
+
+        var tempsubmitArray = JSON.parse(localStorage.getItem('submitArray'));
+
+        // Create the second form API input
+        if (!tempsubmitArray.qa) {
+          tempsubmitArray.qa = {};
+        }
+
+        tempsubmitArray.qa[questionkeys[answered]] = answer;
+        localStorage.setItem('submitArray', JSON.stringify(tempsubmitArray));
+
+        if (answered == (questionCount - 1)) {
+          sendForm();
+        }
+      }
+      localStorage.setItem('chatLine', JSON.stringify(chatLine));
     }
 
-    tempapiMessages.push(tempObj)
-    // setApiMessages(tempapiMessages)
 
-    getQuestion(tempapiMessages);
-
-  }
-
-  const getQuestion = async (messages) => {
-    const response = await fetch(process.env.NEXT_PUBLIC_API_URL + 'api/chat/ask_questions', {
-      method: 'POST',
-      body: JSON.stringify({
-        "messages": messages
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const data = await response.json();
-
-    var requiredKeys = ["response", "messages"];
-    if (response.ok && data && hasAllKeys(data, requiredKeys)) {
-      handleAppendComponent('question', data.response.replace(/\n/g, '<br/>'))
-    }
-    
-    setApiMessages(data.messages)
+    // 
   }
 
   const sendForm = async () => {
     setDocumentLoad(true)
 
+    try {
+      const response = await fetch(process.env.NEXT_PUBLIC_API_URL + 'api/form', {
+        method: 'POST',
+        body: localStorage.getItem('submitArray'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
+      var rdata = await response.json();
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      if (response.ok) {
+        // console.log(rdata)
+        localStorage.setItem('formdata', JSON.stringify(rdata));
+        router.push('/document_preview');
+      }
+    } catch (error) {
+      // console.error('Error:', error);
+    }
   }
 
   const handleKeyDown = (event) => {
@@ -161,7 +260,7 @@ const ChatgbtP1 = ({ }) => {
   const fetchResult = async (question) => {
     count++;
     try {
-      const response = await fetch(process.env.NEXT_PUBLIC_API_URL + 'api/chat/first', {
+      const response = await fetch(process.env.NEXT_PUBLIC_API_URL + 'api/generate/input', {
         method: 'POST',
         body: JSON.stringify({
           "prompt": question
@@ -173,52 +272,45 @@ const ChatgbtP1 = ({ }) => {
 
       const data = await response.json();
 
-      var requiredKeys = ["response", "messages"];
-
-      
-
-      if (response.ok && data && hasAllKeys(data, requiredKeys)) {
+      if (response.ok && data) {
         setChatBoxLoader(false)
 
-        setFirstQuestion(data.response)
-        setApiMessages(data.messages)
+        const completion = Object.keys(data.data).map(key => data.data[key]);
+        const result = { Id: data.Id, completion };
+        const content = data.chat_responst_1;
 
-        // const completion = Object.keys(data.data).map(key => data.data[key]);
-        // const result = { Id: data.Id, completion };
-        // const content = data.chat_responst_1;
+        const qkeys = Object.keys(data.data);
 
-        // const qkeys = Object.keys(data.data);
+        localStorage.setItem('promptQuestion', question);
+        localStorage.setItem('questions', JSON.stringify(result));
+        localStorage.setItem('answered', 0); // answer count only update when answer addded
+        localStorage.setItem('answers', JSON.stringify([]));
+        localStorage.setItem('questionkeys', JSON.stringify(qkeys));
+        localStorage.setItem('questionCount', qkeys.length);
+        localStorage.setItem('chatLine', JSON.stringify([])) // Update when item added to chat
 
-        // localStorage.setItem('promptQuestion', question);
-        // localStorage.setItem('questions', JSON.stringify(result));
-        // localStorage.setItem('answered', 0); // answer count only update when answer addded
-        // localStorage.setItem('answers', JSON.stringify([]));
-        // localStorage.setItem('questionkeys', JSON.stringify(qkeys));
-        // localStorage.setItem('questionCount', data.respons.number_of_questions);
-        // localStorage.setItem('chatLine', JSON.stringify([])) // Update when item added to chat
+        var tempsubmitArray = { Id: data.Id };
 
-        // var tempsubmitArray = { Id: data.Id };
+        localStorage.setItem('submitArray', JSON.stringify(tempsubmitArray));
 
-        // localStorage.setItem('submitArray', JSON.stringify(tempsubmitArray));
+        var messages = {
+          "messages": [
+            { "role": "system", "content": "You are a helpful assistant." },
+            { "role": "user", "content": "Create a document for " + question + " with dummy data" },
+            {
+              "role": "user",
+              "content": content
+            },
+            {
+              "role": "assistant",
+              "content": JSON.stringify(completion)
+            }
+          ]
+        }
 
-        // var messages = {
-        //   "messages": [
-        //     { "role": "system", "content": "You are a helpful assistant." },
-        //     { "role": "user", "content": "Create a document for " + question + " with dummy data" },
-        //     {
-        //       "role": "user",
-        //       "content": content
-        //     },
-        //     {
-        //       "role": "assistant",
-        //       "content": JSON.stringify(completion)
-        //     }
-        //   ]
-        // }
+        localStorage.setItem('messages', JSON.stringify(messages));
 
-        // localStorage.setItem('messages', JSON.stringify(messages));
-
-        // setInitialValues(true)
+        setInitialValues(true)
       } else {
         // Run three times and redirect to home
         if (count < 3) {
@@ -228,7 +320,6 @@ const ChatgbtP1 = ({ }) => {
         }
       }
     } catch (error) {
-
       // Run three times and redirect to home
       if (count < 3) {
         fetchResult(question)
@@ -278,9 +369,8 @@ const ChatgbtP1 = ({ }) => {
                 We’re going to ask you a series of step by step questions to build
                 your agreement.
               </p>
-              {/* <p className="lh-lg mb-3">
-                {answered} of {questionCount} questions answered
-              </p> */}
+              <p className="lh-lg mb-3">{answered} of {questionCount} questions answered
+              </p>
             </div>
             <div className="row">
               <div className="col text-center">
@@ -306,12 +396,11 @@ const ChatgbtP1 = ({ }) => {
                               </div>
                               <div className="col-11">
                                 <p className="text-start">
-                                  {firstQuestion.split('\n').map((text, index) => (
-                                    <React.Fragment key={index}>
-                                      {text}
-                                      <br />
-                                    </React.Fragment>
-                                  ))}
+                                  Great! I will guide you through the process of creating a by asking you a series of questions.
+                                  Please provide accurate and detailed information as you respond
+                                  to the questions. Once we have collected all the necessary
+                                  information, I'll help you create the lease agreement. Let's
+                                  start with the first question. {(questions && questions.length) ? questions[0] : ''}
                                 </p>
                               </div>
                             </div>

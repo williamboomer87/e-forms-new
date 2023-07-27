@@ -18,7 +18,7 @@
     "jspdf": "^2.5.1",
     "micro": "latest",
     "micro-cors": "latest",
-    "next": "^13.4.10",
+    "next": "latest",
     "next-auth": "^4.22.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
