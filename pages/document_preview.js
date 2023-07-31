@@ -10,15 +10,11 @@ const documentPreview = () => {
 
   const router = useRouter();
   const [inputValue, setInputValue] = useState('')
-  const [appendedComponents, setAppendedComponents] = useState([]);
   const [logged, setLogged] = useState(false);
 
   const downloadPDF = () => {
     const topic = localStorage.getItem('inputValue');
     const doc = new jsPDF();
-
-    const storedData = localStorage.getItem('questrionArr');
-    const storedArray = JSON.parse(localStorage.getItem('answers'));
 
     const textContent = JSON.parse(localStorage.getItem('formdata'));
 
@@ -50,7 +46,7 @@ const documentPreview = () => {
   const showPDF = () => {
     const doc = new jsPDF();
 
-    const textContent = JSON.parse(localStorage.getItem('formdata'));
+    const textContent = localStorage.getItem('formdata');
 
     const contentWidth = 180;
     const fullContent = textContent; // Assign the string directly
@@ -87,7 +83,6 @@ const documentPreview = () => {
 
     setInputValue(localStorage.getItem('promptQuestion'));
     const storedData = localStorage.getItem('questrionArr');
-    const storedArray = JSON.parse(localStorage.getItem('answers'));
 
     const storedUser = sessionStorage.getItem('user');
     if (storedUser !== null) {
@@ -97,30 +92,11 @@ const documentPreview = () => {
     if (storedData) {
       const parsedData = JSON.parse(storedData);
 
-      if (storedArray && storedArray.length) {
-        if (parsedData.completion && parsedData.completion.length) {
-          storedArray.map((item, index) => {
-            if (index < 11) {
-              handleAppendComponent('question', parsedData.completion[index])
-              handleAppendComponent('answer', storedArray[index])
-            }
-          });
-        }
-      }
+     
     }
   }, [])
 
-  const handleAppendComponent = (type, content) => {
-    if (type == 'question') {
-      var componentToAppend = <p className="question mb-1">{content}</p>;
-    }
-
-    if (type == 'answer') {
-      var componentToAppend = <p className="answer mb-3">{content}</p>;
-    }
-
-    setAppendedComponents(prevComponents => [...prevComponents, componentToAppend]);
-  };
+  
 
 
   return (

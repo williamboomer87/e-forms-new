@@ -15,14 +15,14 @@ const Question = (props) => {
           setDisplayText(currentText);
           currentIndex++;
 
-          if (currentIndex === 40) { // Change the value (20) to your desired number of letters (After print all)
+          if (currentIndex === 30) { // Change the value (20) to your desired number of letters (After print all)
             clearInterval(timer);
             setDisplayText(props.text);
           }
         } else {
           clearInterval(timer);
         }
-      }, 100); // Adjust the delay (in milliseconds) between each letter display if needed
+      }, 20); // Adjust the delay (in milliseconds) between each letter display if needed
 
       return () => {
         clearInterval(timer);

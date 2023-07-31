@@ -99,9 +99,7 @@ const ChatgbtP1 = ({ }) => {
     setAppendedComponents(prevComponents => [...prevComponents, componentToAppend]);
   };
 
-  const generateUniqueId = () => {
-    return Date.now();
-  };
+
 
   const submitAnswer = async () => {
     const answer = textareaRef.current.value;
@@ -123,6 +121,21 @@ const ChatgbtP1 = ({ }) => {
 
   }
 
+  const extractDocumentContent = (text) => {
+    const startTag = "[DOCUMENT GENERATING STARTS]";
+    const endTag = "[DOCUMENT GENERATING ENDS]";
+
+    const startIndex = text.indexOf(startTag);
+    const endIndex = text.indexOf(endTag);
+
+    if (startIndex !== -1 && endIndex !== -1) {
+        const content = text.substring(startIndex + startTag.length, endIndex).trim();
+        return content;
+    }
+
+    return null;
+  }
+
   const getQuestion = async (messages) => {
     const response = await fetch(process.env.NEXT_PUBLIC_API_URL + 'api/chat/ask_questions', {
       method: 'POST',
@@ -138,9 +151,15 @@ const ChatgbtP1 = ({ }) => {
 
     var requiredKeys = ["response", "messages"];
     if (response.ok && data && hasAllKeys(data, requiredKeys)) {
-      handleAppendComponent('question', data.response.replace(/\n/g, '<br/>'))
+      var rdata = data.response;
+      if(extractDocumentContent(rdata)){
+        localStorage.setItem('formdata', extractDocumentContent(rdata));
+        router.push('/document_preview');
+      }else{
+        handleAppendComponent('question', data.response.replace(/\n/g, '<br/>'), true)
+      }      
     }
-    
+
     setApiMessages(data.messages)
   }
 
@@ -175,13 +194,15 @@ const ChatgbtP1 = ({ }) => {
 
       var requiredKeys = ["response", "messages"];
 
-      
+
 
       if (response.ok && data && hasAllKeys(data, requiredKeys)) {
         setChatBoxLoader(false)
 
         setFirstQuestion(data.response)
         setApiMessages(data.messages)
+
+        localStorage.setItem('promptQuestion', question);
 
         // const completion = Object.keys(data.data).map(key => data.data[key]);
         // const result = { Id: data.Id, completion };
