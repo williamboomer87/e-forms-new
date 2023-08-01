@@ -16,7 +16,7 @@ const documentPreview = () => {
     const topic = localStorage.getItem('inputValue');
     const doc = new jsPDF();
 
-    const textContent = JSON.parse(localStorage.getItem('formdata'));
+    const textContent = localStorage.getItem('formdata');
 
     const textOptions = {
       maxWidth: 180, // Maximum width of the text

@@ -154,6 +154,7 @@ const ChatgbtP1 = ({ }) => {
       var rdata = data.response;
       if(extractDocumentContent(rdata)){
         localStorage.setItem('formdata', extractDocumentContent(rdata));
+        localStorage.setItem('finishanswering', true);
         router.push('/document_preview');
       }else{
         handleAppendComponent('question', data.response.replace(/\n/g, '<br/>'), true)
@@ -161,12 +162,6 @@ const ChatgbtP1 = ({ }) => {
     }
 
     setApiMessages(data.messages)
-  }
-
-  const sendForm = async () => {
-    setDocumentLoad(true)
-
-
   }
 
   const handleKeyDown = (event) => {
@@ -203,6 +198,7 @@ const ChatgbtP1 = ({ }) => {
         setApiMessages(data.messages)
 
         localStorage.setItem('promptQuestion', question);
+        localStorage.setItem('finishanswering', false);
 
         // const completion = Object.keys(data.data).map(key => data.data[key]);
         // const result = { Id: data.Id, completion };

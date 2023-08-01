@@ -40,10 +40,12 @@ const SignIn = () => {
             // } else {
             //     router.push('/?logged=true');
             // }
-            var tempquestionCount = parseInt(localStorage.getItem('questionCount'), 10)
-            var tempanswered = parseInt(localStorage.getItem('answered'), 10)
+            // var tempquestionCount = parseInt(localStorage.getItem('questionCount'), 10)
+            // var tempanswered = parseInt(localStorage.getItem('answered'), 10)
 
-            if(tempquestionCount && tempanswered && (tempquestionCount <= tempanswered)){
+            var finishanswering = localStorage.getItem('finishanswering', true);
+
+            if(finishanswering){
                 router.push('/document_preview?logged=true');
             }else{
                 router.push('/?logged=true');
